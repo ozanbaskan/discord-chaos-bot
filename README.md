@@ -8,7 +8,7 @@ You can get a free mongodb account.
 - MONGO_USER: Your mongodb account's username
 - MONGO_PW: Your mongodb account's password
 
-### Create a file named .env and this add values to it
+### Create a file named .env and add these values to it
 
 Example:
 ```
@@ -26,5 +26,6 @@ npm install && node index.js
 
 ### Features
 
-- You can read commands with typing ">>help" on discord chat,
-- Chaos mode just randomly switches discord user's voice chat channels for now.
+- You can read commands with typing ">>help" on discord chat
+- Chaos mode just randomly switches discord user's voice chat channels for now
+- You can add extra voice files inside voice folder to make discord also randomly play them
