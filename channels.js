@@ -1,4 +1,5 @@
 import { Guild } from "discord.js";
+import { guildCache, timeoutGuildCache } from "./cache.js";
 import { guildCollection } from "./db.js";
 import { randomTime } from "./helpers.js";
 import { randomVoiceAddTimeouts, randomVoiceDeleteTimeouts } from "./timeouts.js";
@@ -55,6 +56,15 @@ export async function deleteARandomVoiceChannel(guild) {
       freq = freq ?? command.split(" ")?.[1]?.trim();
       const freqI = parseInt(freq);
       if (freqI !== 0 && !freqI) return;
+      if (guildCache.has(guild.id)) {
+        const guildData = guildCache.get(guild.id);
+        guildData.randomVoiceDeleteSeconds = freqI;
+      } else {
+        const guildData = await guildCollection.findOne({_id: guild.id});
+        guildData.randomVoiceDeleteSeconds = freqI;
+        guildCache.set(guild.id, guildData);
+        timeoutGuildCache(guild.id);
+      }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {
             randomVoiceDeleteSeconds: freqI
@@ -77,7 +87,14 @@ export async function deleteARandomVoiceChannel(guild) {
  */
 export async function addARandomVoiceChannel(guild) {
     try {
-        const chatData = (await guildCollection.findOne({_id: guild.id})).chatData;
+        let chatData = [];
+        if (guildCache.has(guild.id)) chatData = guildCache.get(guild.id).chatData;
+        else {
+          const guildData = await guildCollection.findOne({_id: guild.id});
+          chatData = guildData.chatData;
+          guildCache.set(guild.id, guildData);
+          timeoutGuildCache(guild.id);
+        }
         let randomName = chatData[Math.floor(chatData.length * Math.random())];
         if (!randomName) randomName = "Embrace Chaos!";
         if (randomName.length > 100) randomName = randomName.slice(0, 100).split(" ")[0];
@@ -116,6 +133,15 @@ export async function addARandomVoiceChannel(guild) {
       freq = freq ?? command.split(" ")?.[1]?.trim();
       const freqI = parseInt(freq);
       if (freqI !== 0 && !freqI) return;
+      if (guildCache.has(guild.id)) {
+        const guildData = guildCache.get(guild.id);
+        guildData.randomVoiceAddSeconds = freqI;
+      } else {
+        const guildData = await guildCollection.findOne({_id: guild.id});
+        guildData.randomVoiceAddSeconds = freqI;
+        guildCache.set(guild.id, guildData);
+        timeoutGuildCache(guild.id);
+      }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {
             randomVoiceAddSeconds: freqI

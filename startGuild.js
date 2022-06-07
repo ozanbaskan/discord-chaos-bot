@@ -6,6 +6,7 @@ import { playRandomVoiceRepeat } from "./voice.js";
 import { filterText } from "./helpers.js";
 import { switchVoicePlaceOfRandomUserRepeat } from "./switchPlace.js";
 import { addARandomVoiceChannelRepeat, deleteARandomVoiceChannelRepeat } from "./channels.js";
+import { guildCache } from "./cache.js";
 
 /**
  * 
@@ -15,6 +16,7 @@ import { addARandomVoiceChannelRepeat, deleteARandomVoiceChannelRepeat } from ".
     try {
         const guildDoc = await guildCollection.findOne({_id: guild.id});
         if (!guildDoc) return await addGuild(guild);
+        else guildCache.set(guild.id, guildDoc);
         await sendRandomMessageRepeat(client, guild, guildDoc.randomChat);
         await playRandomVoiceRepeat(client, guild, guildDoc.randomVoice);
         await switchVoicePlaceOfRandomUserRepeat(client, guild, guildDoc.randomSwitchVoicePlaceSeconds);
@@ -33,7 +35,7 @@ export async function addGuild(guild) {
     let totalMessages = 0;
     try {
         const guildDoc = await guildCollection.findOne({_id: guild.id});
-        if (guildDoc) return;
+        if (guildDoc) return guildCache.set(guild.id, { chatData });
         const messageDict = {};
         for (const channel of guild.channels.cache.values()) {
           if (totalMessages++ > 10000) break;
@@ -56,6 +58,7 @@ export async function addGuild(guild) {
           _id: guild.id,
           chatData,
         });
+        guildCache.set(guild.id, { chatData });
       } catch (error) {
         console.error(error, "guild create error");
       }

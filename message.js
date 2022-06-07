@@ -4,6 +4,9 @@ import { guildCollection } from "./db.js";
 import { randomChatTimeouts } from "./timeouts.js";
 import { client } from "./client.js";
 import { addGuild } from "./startGuild.js";
+import { guildCache, timeoutGuildCache } from "./cache.js";
+
+
 
 /**
  * 
@@ -12,7 +15,13 @@ import { addGuild } from "./startGuild.js";
  */
 export async function messageContentAnswer(message) {
     const content = message.content;
-    const guildData = (await guildCollection.findOne({ _id: message.guildId }));
+    let guildData = {};
+    if (guildCache.has(message.guildId)) guildData = guildCache.get(message.guildId);
+    else {
+        guildData = await guildCollection.findOne({ _id: message.guildId });
+        guildCache.set(message.guildId, guildData);
+        timeoutGuildCache(message.guildId);
+    }
     if (!guildData) return await addGuild(message.guild);
     if (Math.random() >= parseFloat(guildData.replyActivity) && !message.mentions.users.some(user => user.id === client.user.id)) return;
     const chatData = guildData.chatData;
@@ -27,7 +36,14 @@ export async function messageContentAnswer(message) {
  * @returns {Promise<string>}
  */
 export async function randomMessage(guild) {
-    const allData = (await guildCollection.findOne({ _id: guild.id })).chatData;
+    let allData = [];
+    if (guildCache.has(guild.id)) allData = guildCache.get(guild.id).chatData;
+    else {
+      const guildData = await guildCollection.findOne({_id: guild.id});
+      guildCache.set(guild.id, guildData);
+      allData = guildData.chatData;
+      timeoutGuildCache(guild.id);
+    }
     return allData[Math.floor(allData.length * Math.random())]
 };
 
@@ -91,6 +107,15 @@ export async function setRandomChatMinutes(client, message, command, freq) {
     freq = freq ?? command.split(" ")?.[1]?.trim();
     const freqI = parseInt(freq);
     if (freqI !== 0 && !freqI) return;
+    if (guildCache.has(guild.id)) {
+      const guildData = guildCache.get(guild.id);
+      guildData.randomChat = freqI;
+    } else {
+      const guildData = await guildCollection.findOne({ _id: message.guildId });
+      guildCache.set(message.guildId, guildData);
+      guildData.randomChat = freqI;
+      timeoutGuildCache(message.guildId);
+    }
     await guildCollection.findOneAndUpdate({_id: guild.id}, {
         $set: {
           randomChat: freqI
@@ -114,6 +139,15 @@ export async function setReplyActivity(client, message, command, freq) {
     if (freqF !== 0 && !freqF) return;
     if (freqF < 0) freqF = 0;
     if (freqF > 1) freqF = 1;
+    if (guildCache.has(guild.id)) {
+      const guildData = guildCache.get(guild.id);
+      guildData.replyActivity = freqF;
+    } else {
+      const guildData = await guildCollection.findOne({ _id: guild.id});
+      guildCache.set(guild.id, guildData);
+      guildData.replyActivity = freqF;
+      timeoutGuildCache(guild.id);
+    }
     await guildCollection.findOneAndUpdate({_id: guild.id}, {
       $set: {
           replyActivity: freqF

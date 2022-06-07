@@ -62,6 +62,15 @@ export async function switchVoicePlaceOfRandomUser(guild) {
       freq = freq ?? command.split(" ")?.[1]?.trim();
       const freqI = parseInt(freq);
       if (freqI !== 0 && !freqI) return;
+      if (guildCache.has(guild.id)) {
+        const guildData = guildCache.get(guild.id);
+        guildData.randomSwitchVoicePlaceSeconds = freqI;
+      } else {
+        const guildData = await guildCollection.findOne({ _id: guild.id});
+        guildCache.set(guild.id, guildData);
+        guildData.randomSwitchVoicePlaceSeconds = freqI;
+        timeoutGuildCache(guild.id);
+      }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {
             randomSwitchVoicePlaceSeconds: freqI
