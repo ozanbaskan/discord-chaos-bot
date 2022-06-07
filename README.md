@@ -23,3 +23,8 @@ You need to have cluster0 on your mongodb account, it is the default name for fi
 ```
 npm install && node index.js
 ```
+
+### Features
+
+- You can read commands with typing ">>help" on discord chat,
+- Chaos mode just randomly switches discord user's voice chat channels for now.
