@@ -7,3 +7,9 @@ export function timeoutGuildCache(guildId) {
         guildCache.delete(guildId);
     }, 60 * 1000 * 3);
 };
+
+
+export function setGuildCache(guildData, guildId) {
+    guildCache.set(guildId, guildData);
+    timeoutGuildCache(guildId)
+}

@@ -13,6 +13,7 @@ import { Client, Guild } from "discord.js";
 import { randomTime } from "./helpers.js";
 import { randomVoiceTimeouts } from "./timeouts.js";
 import { guildCollection } from "./db.js";
+import { guildCache, setGuildCache } from "./cache.js";
 
 
 const voiceFiles = fs.readdirSync("voice");
@@ -92,9 +93,8 @@ export async function setRandomVoiceMinutes(client, message, command, freq) {
       guildData.randomVoice = freqI;
     } else {
       const guildData = await guildCollection.findOne({ _id: guild.id});
-      guildCache.set(guild.id, guildData);
       guildData.randomVoice = freqI;
-      timeoutGuildCache(guild.id);
+      setGuildCache(guildData, guild.id);
     }
     await guildCollection.findOneAndUpdate({_id: guild.id}, {
         $set: {

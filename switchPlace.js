@@ -1,4 +1,5 @@
 import { Guild } from "discord.js";
+import { guildCache, setGuildCache } from "./cache.js";
 import { guildCollection } from "./db.js";
 import { randomTime } from "./helpers.js";
 import { randomSwitchTimeouts } from "./timeouts.js";
@@ -67,9 +68,8 @@ export async function switchVoicePlaceOfRandomUser(guild) {
         guildData.randomSwitchVoicePlaceSeconds = freqI;
       } else {
         const guildData = await guildCollection.findOne({ _id: guild.id});
-        guildCache.set(guild.id, guildData);
         guildData.randomSwitchVoicePlaceSeconds = freqI;
-        timeoutGuildCache(guild.id);
+        setGuildCache(guildData, guild.id);
       }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {

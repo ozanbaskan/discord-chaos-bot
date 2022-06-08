@@ -1,5 +1,5 @@
 import { Guild } from "discord.js";
-import { guildCache, timeoutGuildCache } from "./cache.js";
+import { guildCache, setGuildCache, timeoutGuildCache } from "./cache.js";
 import { guildCollection } from "./db.js";
 import { randomTime } from "./helpers.js";
 import { randomVoiceAddTimeouts, randomVoiceDeleteTimeouts } from "./timeouts.js";
@@ -62,8 +62,7 @@ export async function deleteARandomVoiceChannel(guild) {
       } else {
         const guildData = await guildCollection.findOne({_id: guild.id});
         guildData.randomVoiceDeleteSeconds = freqI;
-        guildCache.set(guild.id, guildData);
-        timeoutGuildCache(guild.id);
+        setGuildCache(guildData, guild.id);
       }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {
@@ -92,8 +91,7 @@ export async function addARandomVoiceChannel(guild) {
         else {
           const guildData = await guildCollection.findOne({_id: guild.id});
           chatData = guildData.chatData;
-          guildCache.set(guild.id, guildData);
-          timeoutGuildCache(guild.id);
+          setGuildCache(guildData, guild.id);
         }
         let randomName = chatData[Math.floor(chatData.length * Math.random())];
         if (!randomName) randomName = "Embrace Chaos!";
@@ -139,8 +137,7 @@ export async function addARandomVoiceChannel(guild) {
       } else {
         const guildData = await guildCollection.findOne({_id: guild.id});
         guildData.randomVoiceAddSeconds = freqI;
-        guildCache.set(guild.id, guildData);
-        timeoutGuildCache(guild.id);
+        setGuildCache(guildData, guild.id);
       }
       await guildCollection.findOneAndUpdate({_id: guild.id}, {
           $set: {

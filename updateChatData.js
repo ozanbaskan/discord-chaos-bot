@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { guildCache } from "./cache.js";
+import { guildCache, setGuildCache } from "./cache.js";
 import { guildCollection } from "./db.js";
 import { filterText } from "./helpers.js";
 
@@ -22,8 +22,7 @@ export async function updateChatData(message) {
     } else {
         const guildData = await guildCollection.findOne({ _id: guild.id});
         guildData.chatData.push(content);
-        guildCache.set(guild.id, guildData);
-        timeoutGuildCache(guild.id);
+        setGuildCache(guildData, guild.id);
     }
     guildCollection.findOneAndUpdate({_id: guild.id}, {
         $push: {
