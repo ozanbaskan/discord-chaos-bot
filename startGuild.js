@@ -44,6 +44,7 @@ export async function addGuild(guild) {
             while (message) {
               const messages = await channel.messages.fetch({ limit: 100, before: message.id});
               for (const message_ of messages.values()) {
+                if (message_.author.bot) continue;
                 if (totalMessages++ > 10000) break;
                 const content = message_.content;
                 if (filterText(message_)) continue;
